@@ -70,7 +70,7 @@ def hldspack_int(integer):
     return s
 
 ##################################################
-# Functions for reading packets 
+# Functions for reading packets
 def read_byte(data):
     return (ord(data[0]), data[1:])
 
@@ -95,7 +95,7 @@ def read_int(data):
 def read_float(data):
     ret = hldsunpack_float(data[0:4])
     return (ret, data[4:])
-    
+
 ##################################################
 # Exceptions
 class SRCDS_Error(Exception):
@@ -124,7 +124,7 @@ Note: timeout is in seconds. host may be ip or hostname
         self.tcpsock.settimeout(self.timeout)
         self.udpsock.connect((self.ip, self.port))
         self.challenge, self.rcon_challenege, self.req_id, self.hl = -1, 0, 0, 0
-        if self.rconpass: 
+        if self.rconpass:
             self._authenticate_rcon()
 
     ##################################################
@@ -145,7 +145,7 @@ Note: timeout is in seconds. host may be ip or hostname
         self.tcpsock.send(packet)
         #Return req_id of packet
         return self.req_id
-        
+
     def read_packet(self):
         """Parses a single response packet from the server."""
         raw_packetlen = self.tcpsock.recv(4)
@@ -158,8 +158,8 @@ Note: timeout is in seconds. host may be ip or hostname
             strs = ['', '']
         else:
             strs = re.split('[\000]', raw_packet[:-1], 1)
-        return (packetlen, req_id, command, strs[0], strs[1])    
-    
+        return (packetlen, req_id, command, strs[0], strs[1])
+
     def _authenticate_rcon(self):
         if not self.rconpass: raise RCON_Error, 'Empty RCON password.'
         if self.hl == 0:
@@ -174,7 +174,7 @@ Note: timeout is in seconds. host may be ip or hostname
         response = self._any_rcon_response_hl1('say')
         if response == 'Bad rcon_password.':
             raise RCON_Error, 'Invalid RCON password.'
-        
+
     def _authenticate_rcon_hl2(self):
         self.tcpsock.connect((self.ip, self.port))
         req_id = self.send_packet(SERVERDATA_AUTH, self.rconpass, '')
@@ -194,7 +194,7 @@ No parsing is done by this function.
             return self._any_rcon_response_hl1(command)
         else:
             return self._any_rcon_response_hl2(command)[3]
-    
+
     def _any_rcon_response_hl1(self, command):
         query = "rcon " + self.rcon_challenge + ' "' + self.rconpass + '" ' + command
         return self._any_response(query)[1:]
@@ -204,18 +204,18 @@ No parsing is done by this function.
         result = RCON_EMPTY_RESP
         while result[1] != req_id:
             result = self.read_packet()
-        return result                
+        return result
 
     ##################################################
     # RCON functions
     def set_rconpass(self, password):
         '''
-        sets the rcon password after-the-fact, in case you did not specify 
+        sets the rcon password after-the-fact, in case you did not specify
         this in the constructor.
         '''
         self.rconpass = password
         self._authenticate_rcon()
-        
+
     def rcon_command(self, command):
         '''
         executes any rcon command on the server.
@@ -232,16 +232,15 @@ No parsing is done by this function.
         """
         Bans a user with a given steamid; length given in minutes
         """
-        self.rcon_command("banid %d %s" % (length,steamid)) 
-        self.rcon_command("writeid") 
+        self.rcon_command("banid %d %s" % (length,steamid))
+        self.rcon_command("writeid")
 
-       
     def unban(self,steamid):
         """
         Unbans a user with a given steamid.
         """
-        self.rcon_command("removeid %s" % steamid) 
-        self.rcon_command("writeid") 
+        self.rcon_command("removeid %s" % steamid)
+        self.rcon_command("writeid")
 
     def say(self, statement):
         '''
@@ -293,7 +292,6 @@ No parsing is done by this function.
         else:
             return None
 
-
     def status(self):
         '''
         returns two dictionaries: info, and player.
@@ -302,7 +300,7 @@ No parsing is done by this function.
         '''
         raw_status = self._any_rcon_response('status')
         raw_stats = self._any_rcon_response('stats')
-        info = {} 
+        info = {}
         lines = re.split("\n",raw_status)
         line = lines.pop(0)
         while (line == '' or line[0] != '#') and len(lines) != 0:
@@ -345,7 +343,7 @@ No parsing is done by this function.
         # now that we are finishing parsing through the status output, parse through
         # the stats output.
         lines = raw_stats.split('\n')
-        items = lines[1].split() 
+        items = lines[1].split()
         info['cpu_usage'] = items[0]
         info['in']        = items[1]
         info['out']       = items[2]
@@ -379,17 +377,17 @@ This assembles mult-packet responses and returns the raw response (sans the four
             for i, packet in enumerate(packets):
                 data = data + packet
         return data[4:]
-        
+
     ##################################################
     # Queries
     def getchallenge(self):
         raw_challenge = self._any_response(GETCHALLENGE)
-        if raw_challenge[0] != CHALLENGE: 
+        if raw_challenge[0] != CHALLENGE:
             raise SRCDS_Error, 'GetChallenge Query Error: Unknown response type'
         data = raw_challenge[1:]
         self.challenge, data = read_int(data)
         return self.challenge
-    
+
     def details(self):
         raw_details = self._any_response(DETAILS)
         if raw_details[0] == DETAILS_RESP_HL2:
@@ -400,8 +398,7 @@ This assembles mult-packet responses and returns the raw response (sans the four
             return self._details_hl1(raw_details[1:])
         else:
             raise SRCDS_Error, 'Detail Query Error: Unknown response type'
-    
-    
+
     def _details_hl2(self, data):
         detaildict = {}
         detaildict['hl_version'] = 2
@@ -431,7 +428,7 @@ This assembles mult-packet responses and returns the raw response (sans the four
         secured, data = read_byte(data)
         detaildict['secure'] = bool(int(secured))
         detaildict['exe_version'], data = read_string(data)
-        
+
         return detaildict
 
     def _details_hl1(self, data):
@@ -471,9 +468,9 @@ This assembles mult-packet responses and returns the raw response (sans the four
         secured, data = read_byte(data)
         detaildict['secure'] = bool(int(secured))
         detaildict['current_botcount'], data = read_byte(data)
-        
+
         return detaildict
-        
+
     def players(self):
         if self.challenge == -1:
             self.getchallenge()
@@ -492,7 +489,7 @@ This assembles mult-packet responses and returns the raw response (sans the four
             currentplayer['time_on'], data = read_float(data)
             playerlist.append(currentplayer)
         return playerlist
-        
+
     def rules(self):
         if self.challenge == -1:
             self.getchallenge()
@@ -511,13 +508,12 @@ This assembles mult-packet responses and returns the raw response (sans the four
 
     def disconnect(self):
         self.udpsock.close()
-        
+
 ##################################################
 # HLDS class (for backwards compatibility with HLDS.py)
 class HLDS(SRCDS):
     def close(self):
         self.disconnect()
-
 
 if __name__ == "__main__":
     parser = OptionParser(usage="SRCDS.py -a ADDR -p RCONPASS [command]")
@@ -528,7 +524,7 @@ if __name__ == "__main__":
     if not options.addr:
         os.system(sys.argv[0] + " -h")
         sys.exit(1)
-        
+
     print("Connecting to %s with rcon password of %s" % (options.addr,options.rcon))
     s = SRCDS(options.addr,rconpass=options.rcon)
 
@@ -541,7 +537,7 @@ if __name__ == "__main__":
         sinfo,d = s.status()
         for u in d:
             print ("userid %d, name = %s" % (u,d[u]['name']))
- 
+
         print("Server name    : " + sinfo['name'])
         print("IP             : %s" % sinfo['ip'])
         print("Port           : %s" % sinfo['port'])
@@ -557,5 +553,3 @@ if __name__ == "__main__":
     else:
         # run the rcon command that the user specified
         print s.rcon_command(' '.join(args))
-        
-
