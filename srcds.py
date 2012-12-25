@@ -1,19 +1,17 @@
-#!/usr/bin/env python
-#SRCDS.py
-#Half-Life 2 and Half-Life Dedicated Server Interface for Python
-#Released under the LGPL (http://www.gnu.org/licenses/lgpl.html)
+# srcdspy
+# Half-Life 2 and Half-Life Dedicated Server Interface for Python
 #
-#Christopher Munn
-#Based off (most code copied from) SRCDS.py by Sean C. Steeg
+# Mark McGuire
+# Based off (most code copied from) SRCDS.py Christopher Munn
 #
 
-__author__ = 'Christopher Munn'
+__author__ = 'Mark McGuire'
 __license__ = 'http://www.gnu.org/licenses/lgpl.html'
-__date__ = '07 Mar 2006'
-__version__ = '2.02'
-__credits__ = """Sean C. Steeg for SRCDS.py 1.01.
+__date__ = '24 Dec 2012'
+__version__ = '1.0'
+__credits__ = """Christopher Munn for SRCDS.py 2.02
+                 Sean C. Steeg for SRCDS.py 1.01.
                  Bryan Gerber, for the original HLDS.py.
-                 The players and staff of TacticalGamer.com, who make us want to do stuff like this.
               """
 
 import socket, re, xdrlib, string, sys, os
@@ -42,8 +40,9 @@ RCON_CHALLENGE = "challenge rcon\n"
 # Network data manipulation
 def hldsunpack_int(data):
     """
-Network traffic is big endian, and xdrlib wants little endian, meaning the
-bytes need to be reversed in order for xdrlib to work its magic."""
+    Network traffic is big endian, and xdrlib wants little endian, meaning the
+    bytes need to be reversed in order for xdrlib to work its magic.
+    """
     s = ""
     for c in data:
         s = c + s
@@ -52,8 +51,9 @@ bytes need to be reversed in order for xdrlib to work its magic."""
 
 def hldsunpack_float(data):
     """
-Network traffic is big endian, and xdrlib wants little endian, meaning the
-bytes need to be reversed in order for xdrlib to work its magic."""
+    Network traffic is big endian, and xdrlib wants little endian, meaning the
+    bytes need to be reversed in order for xdrlib to work its magic.
+    """
     s = ""
     for c in data:
         s = c + s
@@ -99,21 +99,25 @@ def read_float(data):
 ##################################################
 # Exceptions
 class SRCDS_Error(Exception):
-    """Base error."""
+    """
+    Base error
+    """
     pass
 
 class RCON_Error(Exception):
-    """Raised when a command requiring RCON is given, but the RCON password is missing or incorrect."""
+    """
+    Raised when a command requiring RCON is given, but the RCON password is missing or incorrect
+    """
     pass
 
 ##################################################
 # SRCDS class
 class SRCDS:
     """
-HL2DS/HLDS Interface class. Supports HL2 and HL servers.
+    HL2DS/HLDS Interface class. Supports HL2 and HL servers.
 
-Initialization: OBJ = SRCDS(host, [port=27015], [rconpass=''], [timeout=2.0])
-Note: timeout is in seconds. host may be ip or hostname
+    Initialization: OBJ = SRCDS(host, [port=27015], [rconpass=''], [timeout=2.0])
+    Note: timeout is in seconds. host may be ip or hostname
     """
 
     def __init__(self, host, port=27015, rconpass='', timeout=10.0):
@@ -130,7 +134,9 @@ Note: timeout is in seconds. host may be ip or hostname
     ##################################################
     # RCON Packet functions
     def send_packet(self, command, string1, string2=''):
-        """Crafts and sends a packet to the server."""
+        """
+        Crafts and sends a packet to the server.
+        """
         #Increment self.req_id, so all commands have unique id
         self.req_id += 1
         #Make the packet from the end going backwards
@@ -147,7 +153,9 @@ Note: timeout is in seconds. host may be ip or hostname
         return self.req_id
 
     def read_packet(self):
-        """Parses a single response packet from the server."""
+        """
+        Parses a single response packet from the server.
+        """
         raw_packetlen = self.tcpsock.recv(4)
         packetlen = hldsunpack_int(raw_packetlen)
         raw_packet = self.tcpsock.recv(packetlen)
@@ -187,8 +195,8 @@ Note: timeout is in seconds. host may be ip or hostname
 
     def _any_rcon_response(self, command):
         """
-This function returns the raw response for commands requiring RCON.
-No parsing is done by this function.
+        This function returns the raw response for commands requiring RCON.
+        No parsing is done by this function.
         """
         if self.hl == 1:
             return self._any_rcon_response_hl1(command)
@@ -209,23 +217,23 @@ No parsing is done by this function.
     ##################################################
     # RCON functions
     def set_rconpass(self, password):
-        '''
-        sets the rcon password after-the-fact, in case you did not specify
+        """
+        Sets the rcon password after-the-fact, in case you did not specify
         this in the constructor.
-        '''
+        """
         self.rconpass = password
         self._authenticate_rcon()
 
     def rcon_command(self, command):
-        '''
+        """
         executes any rcon command on the server.
-        '''
+        """
         return self._any_rcon_response(command)
 
     def changelevel(self, map):
-        '''
+        """
         changes the map.
-        '''
+        """
         self._any_rcon_response('changelevel %s' %map)
 
     def ban(self,steamid,length=0):
@@ -243,48 +251,48 @@ No parsing is done by this function.
         self.rcon_command("writeid")
 
     def say(self, statement):
-        '''
+        """
         cause the console to say something in-game to the players.
-        '''
+        """
         self._any_rcon_response('say %s' %statement)
 
     def quit(self):
-        '''
+        """
         quits the server.
-        '''
+        """
         self._any_rcon_response('quit')
 
     def restart(self):
-        '''
+        """
         restarts the server.
-        '''
+        """
         self._any_rcon_response('_restart')
 
     def version(self):
-        '''
+        """
         returns the version information for the host srcds server.
-        '''
+        """
         d = self.status()
         return d['version']
 
     def currentmap(self):
-        '''
+        """
         returns the current map that the server is running.
-        '''
+        """
         d = self.status()
         return d['map']
 
     def nplayers(self):
-        '''
+        """
         returns the number of players present on the server.
-        '''
+        """
         d = self.status()
         return d['players']
 
     def cvar(self, var):
-        '''
+        """
         returns the value of any public console variable.
-        '''
+        """
         raw_status = self._any_rcon_response(var)
         val = re.match('^"(.*?)" = "(.*?)"', raw_status)
         if val:
@@ -293,11 +301,11 @@ No parsing is done by this function.
             return None
 
     def status(self):
-        '''
+        """
         returns two dictionaries: info, and player.
         the info dictionary contains: map, version, players, slots, name, ip, port, fps, cpu_usage, in, out, users
         player is a dictionary of dictionaries, keyed by the user id.  Each dictionary is the status info on a player.
-        '''
+        """
         raw_status = self._any_rcon_response('status')
         raw_stats = self._any_rcon_response('stats')
         info = {}
@@ -361,7 +369,7 @@ No parsing is done by this function.
     # Query packet functions
     def _any_response(self, query):
         """
-This assembles mult-packet responses and returns the raw response (sans the four \xFF's).  No parsing is done by this function.
+        This assembles mult-packet responses and returns the raw response (sans the four \xFF's).  No parsing is done by this function.
         """
         self.udpsock.send('\xFF\xFF\xFF\xFF' + query)
         data = self.udpsock.recv(4096)
