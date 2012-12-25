@@ -17,7 +17,7 @@ __credits__ = """Christopher Munn for SRCDS.py 2.02
 import socket, re, xdrlib, string, sys, os
 from optparse import OptionParser
 
-#Server Query Constants
+# Server Query Constants
 DETAILS = "TSource Engine Query\x00"
 DETAILS_RESP_HL2 = 'I'
 DETAILS_RESP_HL1 = 'm'
@@ -27,13 +27,13 @@ PLAYERS = 'U'
 PLAYERS_RESP = 'D'
 RULES = 'V'
 RULES_RESP = 'E'
-#HL2 RCON Constants
+# HL2 RCON Constants
 SERVERDATA_RESPONSE_VALUE = 0
 SERVERDATA_AUTH_RESPONSE = 2
 SERVERDATA_EXECCOMMAND = 2
 SERVERDATA_AUTH = 3
 RCON_EMPTY_RESP = (10,0,0,'','')
-#HL1 RCON Constants
+# HL1 RCON Constants
 RCON_CHALLENGE = "challenge rcon\n"
 
 ##################################################
@@ -112,24 +112,27 @@ class RCON_Error(Exception):
 
 ##################################################
 # SRCDS class
-class SRCDS:
+class SRCDS(object):
     """
     HL2DS/HLDS Interface class. Supports HL2 and HL servers.
-
-    Initialization: OBJ = SRCDS(host, [port=27015], [rconpass=''], [timeout=2.0])
-    Note: timeout is in seconds. host may be ip or hostname
     """
 
-    def __init__(self, host, port=27015, rconpass='', timeout=10.0):
-        self.ip, self.port, self.rconpass, self.timeout = socket.gethostbyname(host), port, rconpass, timeout
+    def __init__(self):
+        self.challenge, self.rcon_challenege, self.req_id, self.hl = -1, 0, 0, 0
+
+    def connect(self, address, rconpass='', timeout=10.0):
+        self.address, self.rconpass, self.timeout = address, rconpass, timeout
         self.udpsock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.udpsock.settimeout(self.timeout)
         self.tcpsock.settimeout(self.timeout)
-        self.udpsock.connect((self.ip, self.port))
-        self.challenge, self.rcon_challenege, self.req_id, self.hl = -1, 0, 0, 0
+        self.udpsock.connect(self.address)
         if self.rconpass:
             self._authenticate_rcon()
+
+    def close(self):
+        self.udpsock.close()
+        self.tcpsock.close()
 
     ##################################################
     # RCON Packet functions
@@ -184,7 +187,7 @@ class SRCDS:
             raise RCON_Error, 'Invalid RCON password.'
 
     def _authenticate_rcon_hl2(self):
-        self.tcpsock.connect((self.ip, self.port))
+        self.tcpsock.connect(self.address)
         req_id = self.send_packet(SERVERDATA_AUTH, self.rconpass, '')
         i = 0
         result = RCON_EMPTY_RESP
@@ -514,9 +517,6 @@ class SRCDS:
             rulesdict[everyother] = ruleslist[ruleslist.index(everyother) + 1]
         return rulesdict
 
-    def disconnect(self):
-        self.udpsock.close()
-
 ##################################################
 # HLDS class (for backwards compatibility with HLDS.py)
 class HLDS(SRCDS):
@@ -534,7 +534,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print("Connecting to %s with rcon password of %s" % (options.addr,options.rcon))
-    s = SRCDS(options.addr,rconpass=options.rcon)
+    s = SRCDS()
+    s.connect(options.addr,rconpass=options.rcon)
 
     if not args:
         # run testing procedures
