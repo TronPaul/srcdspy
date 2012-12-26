@@ -5,15 +5,6 @@
 # Based off (most code copied from) SRCDS.py Christopher Munn
 #
 
-__author__ = 'Mark McGuire'
-__license__ = 'http://www.gnu.org/licenses/lgpl.html'
-__date__ = '24 Dec 2012'
-__version__ = '1.0'
-__credits__ = """Christopher Munn for SRCDS.py 2.02
-                 Sean C. Steeg for SRCDS.py 1.01.
-                 Bryan Gerber, for the original HLDS.py.
-              """
-
 import socket, re, xdrlib, string, sys, os
 from optparse import OptionParser
 
