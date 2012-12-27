@@ -269,19 +269,19 @@ class SRCDS(object):
         d = self.status()
         return d['version']
 
-    def currentmap(self):
+    def current_map(self):
         """
         returns the current map that the server is running.
         """
         d = self.status()
         return d['map']
 
-    def nplayers(self):
+    def num_players(self):
         """
         returns the number of players present on the server.
         """
         d = self.status()
-        return d['players']
+        return d['num_players']
 
     def cvar(self, var):
         """
@@ -320,7 +320,7 @@ class SRCDS(object):
             elif kw == "players":
                 #players :  17 (24 max)
                 t = parts[1].split('(')
-                info['players']   = int(t[0])
+                info['num_players']   = int(t[0])
                 info['slots'] = int(t[1].split()[0])
             line = lines.pop(0)
         keys = re.split(' +', line)
@@ -329,18 +329,18 @@ class SRCDS(object):
             temp = keys[0]
             keys[0] = keys[1]
             keys[1] = temp
-        players = {}
+        info['players'] = {}
         for line in lines:
             if line and line[0] == '#':
                 line = re.split('"', line, 3)
                 id = int(re.split(' +', line[0])[1])
-                players[id] = {}
-                players[id] [keys[1]] = line[1]
+                info['players'][id] = {}
+                info['players'][id] [keys[1]] = line[1]
                 values = re.split(" +", line[2])
                 if self.hl == 1:
                     values.pop(0)
                 for i, key in enumerate(keys[2:]):
-                   players[id][key] = values[i+1]
+                   info['players'][id][key] = values[i+1]
 
         # now that we are finishing parsing through the status output, parse through
         # the stats output.
@@ -357,7 +357,7 @@ class SRCDS(object):
         d = self.details()
         for k,v in d.iteritems(): info[k] = v
 
-        return (info,players)
+        return info
 
     ##################################################
     # Query packet functions
