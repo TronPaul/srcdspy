@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name = 'srcdspy',
-    version = '1.0',
+    version = '1.1',
     packages = find_packages(),
     url = 'https://github.com/TronPaul/srcdspy',
     license = 'LGPL',
